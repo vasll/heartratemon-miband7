@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MiBand 6 Heartrate</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <canvas id="chart"></canvas>
+    <div id="container">
+      <div class="hr">
+        <h1 id="heartrate">
+          <span id="hr">-</span><span class="unit"> BPM</span>
+        </h1>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Initialize chart using Chart.js
+      const ctx = document.getElementById('chart').getContext('2d');
+      const bpmChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Heart Rate (BPM)',
+              data: [],
+              borderColor: 'red',
+              borderWidth: 5,
+              fill: true,  // Fill the area under the line
+              backgroundColor: 'rgba(255, 0, 0, 0.5)', // Red fill color
+              pointRadius: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              display: false, // Hide x-axis labels
+              grid: { display: false }, // Hide x-axis grid lines
+            },
+            y: {
+              display: false, // Hide y-axis labels
+              beginAtZero: true,
+              grid: { display: false }, // Hide y-axis grid lines
+            },
+          },
+          plugins: {
+            legend: {
+              display: false, // Hide legend
+            },
+          },
+        },
+      });
+
+      const hr = document.querySelector("#hr");
+
+      // Function to fetch BPM data from the API and dispatch the heartrate event
+      async function fetchHeartRate() {
+        try {
+          const response = await fetch("http://localhost:8081");
+          const data = await response.json();
+          const heartRate = data.heart_rate;
+
+          // Dispatch a custom event with the heart rate value
+          if (heartRate == 'N/A') { return; }
+          window.dispatchEvent(
+            new CustomEvent("heartrate", {
+              detail: heartRate,
+            })
+          );
+        } catch (error) {
+          console.error("Error fetching heart rate:", error);
+        }
+      }
+
+      // Listen for the custom 'heartrate' event to update the UI and chart
+      window.addEventListener("heartrate", (e) => {
+        const heartRate = e.detail;
+        hr.innerText = heartRate;
+
+        // Get current time for the label
+        const now = new Date();
+        const timeLabel = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+
+        // Add new data to the chart
+        bpmChart.data.labels.push(timeLabel);
+        bpmChart.data.datasets[0].data.push(heartRate);
+
+        // Keep only the latest 30 data points
+        if (bpmChart.data.labels.length > 30) {
+          bpmChart.data.labels.shift();
+          bpmChart.data.datasets[0].data.shift();
+        }
+
+        bpmChart.update();
+      });
+
+      // Start fetching heart rate data every second
+      setInterval(fetchHeartRate, 1250);
+    </script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 import ApexCharts from "apexcharts";
 
-const DATAPOINTS = 60;
+const DATAPOINTS = 75;
 
 export class Chart {
   constructor(selector) {

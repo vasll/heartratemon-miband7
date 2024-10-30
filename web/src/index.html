@@ -94,8 +94,8 @@
         bpmChart.data.labels.push(timeLabel);
         bpmChart.data.datasets[0].data.push(heartRate);
 
-        // Keep only the latest 30 data points
-        if (bpmChart.data.labels.length > 30) {
+        // Keep only the latest 75 data points
+        if (bpmChart.data.labels.length > 75) {
           bpmChart.data.labels.shift();
           bpmChart.data.datasets[0].data.shift();
         }

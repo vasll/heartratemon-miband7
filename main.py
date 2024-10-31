@@ -8,16 +8,16 @@ heart_rate: str = 'N/A'
 app = Flask(__name__)
 CORS(app)
 
-""" Endpoint to update heart rate coming from phone (or any data source)"""
+""" Endpoint to update local heart_rate coming from phone """
 @app.route('/', methods=['POST'])
 def update_heart_rate():
     global heart_rate
-    data = request.form
-    heart_rate = next(iter(data)).split(',')[1]
-    print(f'heart_rate: {heart_rate}')
+    data = request.form # Contains `%antexts()` Tasker variable
+    heart_rate = next(iter(data)).split(',')[1] # Extract only heart rate from notification
+    print(f'RECEIVED heart_rate FROM TASKER: {heart_rate}')
     return ('', 200)
 
-"""Endpoint to fetch the current heart rate, to be then displayed in the webapp"""
+""" Endpoint to fetch the current heart rate, to be then displayed in the webapp """
 @app.route('/', methods=['GET'])
 def get_heart_rate():
     global heart_rate
